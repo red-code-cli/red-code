@@ -145,7 +145,18 @@ jobs:
         with:
           pattern: cli-*
           path: packages/cli/dist
-          merge-multiple: true
+
+      - name: Reorganize artifacts
+        run: |
+          cd packages/cli/dist
+          for dir in cli-*/; do
+            if [ -d "$dir" ]; then
+              target=$(basename "$dir" | sed 's/^cli-//')
+              mv "$dir" "redcode-ai-$target"
+              echo "✓ Moved $dir → redcode-ai-$target"
+            fi
+          done
+          ls -la
 
       - name: Pack npm tarballs and standalone archives
         run: bun run pack
