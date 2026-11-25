@@ -1,5 +1,9 @@
 # RedCode
 
+[![GitHub Workflow](https://github.com/red-code-cli/red-code/actions/workflows/check.yml/badge.svg)](https://github.com/red-code-cli/red-code/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![npm: redcode-ai](https://img.shields.io/npm/v/redcode-ai?label=npm)](https://www.npmjs.com/package/redcode-ai)
+
 **Ek advanced AI coding agent — terminal, web aur desktop ke liye.**
 
 RedCode ek open-source AI development tool hai jo aapke codebase ko samajh kar plan
@@ -8,6 +12,35 @@ karta hai. Ye opencode ke MIT-licensed codebase (v2.3.0) par based hai aur isko
 RedCode naam se aage develop kiya ja raha hai.
 
 > Status: active development. Abhi koi published package/release nahi hai.
+
+## Quick Install
+
+**Binary downloads** GitHub Actions se available hain:
+
+```bash
+# Linux x64
+curl -L https://github.com/red-code-cli/red-code/releases/download/latest/redcode-ai-linux-x64 \
+  -o redcode && chmod +x redcode && ./redcode
+
+# macOS (Intel)
+curl -L https://github.com/red-code-cli/red-code/releases/download/latest/redcode-ai-darwin-x64 \
+  -o redcode && chmod +x redcode && ./redcode
+
+# macOS (Apple Silicon)
+curl -L https://github.com/red-code-cli/red-code/releases/download/latest/redcode-ai-darwin-arm64 \
+  -o redcode && chmod +x redcode && ./redcode
+
+# Windows (PowerShell)
+curl -L https://github.com/red-code-cli/red-code/releases/download/latest/redcode-ai-windows-x64.exe `
+  -o redcode.exe && .\redcode.exe
+```
+
+Ya npm se:
+
+```bash
+npm install -g redcode-ai
+redcode
+```
 
 ## Features
 
@@ -39,6 +72,16 @@ Audit me verify hui capabilities:
 
 ## Getting Started (development)
 
+### GitHub Actions & Releases
+
+- **check.yml**: Automatic lint + typecheck on every push to `main`
+- **redcode-release.yml**: Builds for 12 platforms (linux/darwin/windows × arm64/x64 + musl)
+  - Trigger: Push `v*` tags or manual dispatch
+  - Output: GitHub Releases + npm (redcode-ai)
+  - [View Releases](https://github.com/red-code-cli/red-code/releases)
+
+### Development Setup
+
 ```bash
 # 1. Dependencies
 bun install
@@ -65,6 +108,25 @@ Tests package directory se chalayein (root se nahi):
 
 ```bash
 cd packages/core && bun run test
+```
+
+## CLI Usage
+
+```bash
+# TUI terminal interface
+redcode
+
+# Web UI (browser)
+redcode --web
+
+# Desktop app
+redcode --desktop
+
+# Custom project directory
+redcode /path/to/project
+
+# Help
+redcode --help
 ```
 
 ## Project Structure
