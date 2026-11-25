@@ -47,7 +47,7 @@ async function packDistribution(input: {
   const binaries: Record<string, string> = {}
   
   // Find package.json files in platform-specific directories (e.g., redcode-ai-linux-x64/package.json)
-  for (const filepath of Bun.globSync(`${input.packagePrefix}*/package.json`, { cwd: input.root })) {
+  for (const filepath of new Bun.Glob(`${input.packagePrefix}*/package.json`).scanSync({ cwd: input.root })) {
     const dirName = filepath.split('/')[0]  // Extract "redcode-ai-linux-x64" from "redcode-ai-linux-x64/package.json"
     try {
       const pkg = await Bun.file(`${input.root}/${filepath}`).json()
