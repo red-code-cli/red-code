@@ -46,14 +46,15 @@ async function packDistribution(input: {
 }) {
   const binaries: Set<string> = new Set()
   
-  // Look for binary files matching the package prefix (GitHub Actions artifacts case)
-  for (const filename of await Bun.file(input.root).json().catch(() => [])) {
-    if (filename.startsWith(input.packagePrefix)) {
+  // Search for binary files in subdirectories (GitHub Actions downloads into cli-* folders)
+  for (const filepath of Bun.globSync(`*/${input.packagePrefix}*`, { cwd: input.root })) {
+    const filename = filepath.split('/').pop()
+    if (filename && filename.startsWith(input.packagePrefix)) {
       binaries.add(filename)
     }
   }
   
-  // If no binaries found, search directory for binary files directly
+  // If no binaries found in subdirs, try root directory (merged or manual case)
   if (binaries.size === 0) {
     for (const filename of Bun.globSync(`${input.packagePrefix}*`, { cwd: input.root })) {
       binaries.add(filename)
