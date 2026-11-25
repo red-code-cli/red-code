@@ -45,11 +45,25 @@ async function packDistribution(input: {
   archive: (target: string) => boolean
 }) {
   const binaries: Record<string, string> = {}
+  
+  // Try subdirectories first (normal case)
   for (const filepath of new Bun.Glob("*/package.json").scanSync({ cwd: input.root })) {
     const item = await Bun.file(`${input.root}/${filepath}`).json()
     if (!item.name.startsWith(input.packagePrefix)) continue
     binaries[item.name] = item.version
   }
+  
+  // If no binaries found in subdirs, check if package.json is directly in root (merged artifacts case)
+  if (Object.keys(binaries).length === 0) {
+    const pkgPath = `${input.root}/package.json`
+    try {
+      const item = await Bun.file(pkgPath).json()
+      if (item.name.startsWith(input.packagePrefix)) {
+        binaries[item.name] = item.version
+      }
+    } catch {}
+  }
+  
   console.log(input.name, "binaries", binaries)
   const versions = new Set(Object.values(binaries))
   if (versions.size > 1) throw new Error(`Binary package versions do not match for ${input.name}`)
