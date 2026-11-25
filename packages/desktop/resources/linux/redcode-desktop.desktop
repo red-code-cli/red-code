@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=RedCode
+Exec=/opt/RedCode/ai.opencode %U
+Terminal=false
+Type=Application
+Icon=ai.opencode
+StartupWMClass=ai.redcode.desktop
+NoDisplay=true
+Comment=Open source AI coding agent
+Categories=Development;

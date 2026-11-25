@@ -1,0 +1,34 @@
+{
+  "build": { "command": "bun run build", "cwd": "packages/app", "output": "packages/app/dist" },
+  "serve": { "command": "bun e2e/utils/serve.ts --host 127.0.0.1 --port {port}", "cwd": "packages/app" },
+  "apps": {
+    "opencode": {
+      "exe": {
+        "windows": "%LOCALAPPDATA%/Programs/ai.redcode.desktop/RedCode.exe",
+        "macos": "/Applications/RedCode.app/Contents/MacOS/RedCode"
+      },
+      "unset": ["REDCODE_*", "OTEL_*", "SENTRY_*"],
+      "env": {
+        "REDCODE_DB": "{home}/.local/share/redcode/redcode.db",
+        "REDCODE_CONFIG_DIR": "{home}/.config/redcode",
+        "HTTP_PROXY": "http://127.0.0.1:9",
+        "HTTPS_PROXY": "http://127.0.0.1:9",
+        "NO_PROXY": "localhost,127.0.0.1,::1"
+      },
+      "dirs": [".local/share/redcode"],
+      "files": {
+        ".config/redcode/service.json": { "port": "{port}" },
+        "AppData/Local/@opencodedesktop-updater": "a file, not a folder: the updater cannot stage a download while strobe measures"
+      },
+      "guard": [{ "file": "~/.local/state/redcode/service.json", "pid": "pid", "url": "url" }],
+      "protocols": ["opencode"]
+    },
+    "redcode-beta": {
+      "extends": "opencode",
+      "exe": {
+        "windows": "%LOCALAPPDATA%/Programs/ai.redcode.desktop.beta/RedCode Beta.exe",
+        "macos": "/Applications/RedCode Beta.app/Contents/MacOS/RedCode Beta"
+      }
+    }
+  }
+}
