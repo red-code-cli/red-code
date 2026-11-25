@@ -44,29 +44,25 @@ async function packDistribution(input: {
   packagePrefix: string
   archive: (target: string) => boolean
 }) {
-  const binaries: Set<string> = new Set()
+  const binaries: Record<string, string> = {}
   
-  // Search for binary files in subdirectories (GitHub Actions downloads into cli-* folders)
-  for (const filepath of Bun.globSync(`*/${input.packagePrefix}*`, { cwd: input.root })) {
-    const filename = filepath.split('/').pop()
-    if (filename && filename.startsWith(input.packagePrefix)) {
-      binaries.add(filename)
+  // Find package.json files in platform-specific directories (e.g., redcode-ai-linux-x64/package.json)
+  for (const filepath of Bun.globSync(`${input.packagePrefix}*/package.json`, { cwd: input.root })) {
+    const dirName = filepath.split('/')[0]  // Extract "redcode-ai-linux-x64" from "redcode-ai-linux-x64/package.json"
+    try {
+      const pkg = await Bun.file(`${input.root}/${filepath}`).json()
+      binaries[dirName] = pkg.version || process.env.REDCODE_VERSION || Script.version
+    } catch {
+      // Fallback if package.json can't be read
+      binaries[dirName] = process.env.REDCODE_VERSION || Script.version
     }
   }
   
-  // If no binaries found in subdirs, try root directory (merged or manual case)
-  if (binaries.size === 0) {
-    for (const filename of Bun.globSync(`${input.packagePrefix}*`, { cwd: input.root })) {
-      binaries.add(filename)
-    }
-  }
-  
-  console.log(input.name, "binaries", Array.from(binaries))
-  if (binaries.size === 0) throw new Error(`No binary packages found for ${input.name}`)
-  
-  // Get version from environment (set by GitHub Actions workflow)
-  const version = process.env.REDCODE_VERSION || Script.version
-  if (!version) throw new Error(`No version available for ${input.name}`)
+  console.log(input.name, "binaries", binaries)
+  const versions = new Set(Object.values(binaries))
+  if (versions.size > 1) throw new Error(`Binary package versions do not match for ${input.name}`)
+  const version = versions.values().next().value
+  if (!version) throw new Error(`No binary packages found for ${input.name}`)
 
   await $`mkdir -p ${input.root}/${input.name}/bin`
   await $`cp ./script/postinstall.mjs ${input.root}/${input.name}/postinstall.mjs`
