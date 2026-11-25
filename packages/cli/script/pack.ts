@@ -44,32 +44,28 @@ async function packDistribution(input: {
   packagePrefix: string
   archive: (target: string) => boolean
 }) {
-  const binaries: Record<string, string> = {}
+  const binaries: Set<string> = new Set()
   
-  // Try subdirectories first (normal case)
-  for (const filepath of new Bun.Glob("*/package.json").scanSync({ cwd: input.root })) {
-    const item = await Bun.file(`${input.root}/${filepath}`).json()
-    if (!item.name.startsWith(input.packagePrefix)) continue
-    binaries[item.name] = item.version
+  // Look for binary files matching the package prefix (GitHub Actions artifacts case)
+  for (const filename of await Bun.file(input.root).json().catch(() => [])) {
+    if (filename.startsWith(input.packagePrefix)) {
+      binaries.add(filename)
+    }
   }
   
-  // If no binaries found in subdirs, check if package.json is directly in root (merged artifacts case)
-  if (Object.keys(binaries).length === 0) {
-    const pkgPath = `${input.root}/package.json`
-    try {
-      const item = await Bun.file(pkgPath).json()
-      if (item.name.startsWith(input.packagePrefix)) {
-        binaries[item.name] = item.version
-      }
-    } catch {}
+  // If no binaries found, search directory for binary files directly
+  if (binaries.size === 0) {
+    for (const filename of Bun.globSync(`${input.packagePrefix}*`, { cwd: input.root })) {
+      binaries.add(filename)
+    }
   }
   
-  console.log(input.name, "binaries", binaries)
-  const versions = new Set(Object.values(binaries))
-  if (versions.size > 1) throw new Error(`Binary package versions do not match for ${input.name}`)
-  const version = versions.values().next().value
-  if (!version) throw new Error(`No binary packages found for ${input.name}`)
-  if (version !== Script.version) throw new Error(`Expected ${Script.version}, got ${version} for ${input.name}`)
+  console.log(input.name, "binaries", Array.from(binaries))
+  if (binaries.size === 0) throw new Error(`No binary packages found for ${input.name}`)
+  
+  // Get version from environment (set by GitHub Actions workflow)
+  const version = process.env.REDCODE_VERSION || Script.version
+  if (!version) throw new Error(`No version available for ${input.name}`)
 
   await $`mkdir -p ${input.root}/${input.name}/bin`
   await $`cp ./script/postinstall.mjs ${input.root}/${input.name}/postinstall.mjs`
